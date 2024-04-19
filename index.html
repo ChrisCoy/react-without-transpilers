@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/@unocss/runtime"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@unocss/reset/tailwind.min.css"
+    />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script src="elements.js"></script>
+
+    <script>
+      const TodoItem = (props) => {
+        // const id = React.useId();
+        return Division({
+          key: props.key,
+          className: "flex items-center justify-between p-4 border-b",
+          children: [
+            Division({
+              className: "flex items-center",
+              children: [
+                Element("input", {
+                  id: props.id,
+                  type: "checkbox",
+                  className: "mr-4",
+                  checked: props.todo.done,
+                  onChange: (e) =>
+                    props.onChange({
+                      ...props.todo,
+                      done: e.target.checked,
+                    }),
+                }),
+                Element("label", {
+                  htmlFor: props.id,
+                  className: props.todo.done ? "line-through" : "",
+                  children: props.todo.label,
+                }),
+              ],
+            }),
+            Division({
+              className: "flex items-center",
+              children: [
+                Button({
+                  className:
+                    "text-red-500 bg-red-100 px-2 py-1 rounded-lg hover:bg-red-200",
+                  onClick: () => props.onRemove(props.todo),
+                  children: "Remove",
+                }),
+                Division({
+                  className: "flex flex-col gap-[2px] leading-none ml-4",
+                  children: [
+                    Button({
+                      onClick: props.onUp,
+                      className: "p-1 bg-black w-6 hover:opacity-40 rounded-sm text-white",
+                      children: "⯅",
+                    }),
+                    Button({
+                      onClick: props.onDown,
+                      className: "p-1 bg-black w-6 hover:opacity-40 rounded-sm text-white",
+                      children: "⯆",
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        });
+      };
+
+      const App = () => {
+        const [text, setText] = React.useState("");
+        const [todos, setTodos] = React.useState([
+          {
+            id: 1,
+            label: "Learn React",
+            done: false,
+          },
+          {
+            id: 2,
+            label: "Learn Unocss",
+            done: false,
+          },
+        ]);
+
+        const handleAddTodo = (event) => {
+          event.preventDefault();
+          if (text.trim()) {
+            setTodos((prev) => [
+              ...prev,
+              {
+                id: Date.now(),
+                label: text,
+                done: false,
+              },
+            ]);
+          }
+          setText("");
+        };
+
+        const onUp = (id) => {
+          const index = todos.findIndex((todo) => todo.id === id);
+          if (index > 0) {
+            const newTodos = [...todos];
+            const temp = newTodos[index];
+            newTodos[index] = newTodos[index - 1];
+            newTodos[index - 1] = temp;
+            setTodos(newTodos);
+          }
+        };
+
+        const onDown = (id) => {
+          const index = todos.findIndex((todo) => todo.id === id);
+          if (index < todos.length - 1) {
+            const newTodos = [...todos];
+            const temp = newTodos[index];
+            newTodos[index] = newTodos[index + 1];
+            newTodos[index + 1] = temp;
+            setTodos(newTodos);
+          }
+        };
+
+        return Division({
+          className: "grid place-items-center h-screen p-8 shadow-lg",
+          children: Division({
+            className: "max-w-lg w-full bg-zinc-100 p-4 rounded-lg",
+            children: [
+              Element("header", {
+                className: "text-center",
+                children: Span({
+                  className:
+                    "w-full p-4 text-2xl font-bold flex bg-purple-500 text-white rounded-lg",
+                  children: "TODO-LIST",
+                }),
+              }),
+              Element("form", {
+                onSubmit: handleAddTodo,
+                children: Division({
+                  className: "flex items-center mt-4",
+                  children: [
+                    Element("input", {
+                      type: "text",
+                      name: "todo",
+                      className: "flex-1 p-2 w-full border rounded-lg",
+                      placeholder: "Enter your todo",
+                      onChange: (e) => setText(e.target.value),
+                      value: text,
+                    }),
+                    Button({
+                      type: "submit",
+                      className:
+                        "!bg-purple-500 text-white hover:!bg-purple-700 px-4 py-2 rounded-lg ml-4",
+                      children: "Add",
+                    }),
+                  ],
+                }),
+              }),
+              Division({
+                isList: true,
+                className: "h-96 overflow-y-auto mt-4 flex-1",
+                children: todos.map((todo) =>
+                  TodoItem({
+                    todo,
+                    key: todo.id,
+                    id: `todo-${todo.id}`,
+                    onUp: () => onUp(todo.id),
+                    onDown: () => onDown(todo.id),
+                    onChange: (newTodo) =>
+                      setTodos((prev) =>
+                        prev.map((t) => (t.id === newTodo.id ? newTodo : t))
+                      ),
+                    onRemove: (todo) =>
+                      setTodos((prev) => prev.filter((t) => t.id !== todo.id)),
+                  })
+                ),
+              }),
+            ],
+          }),
+        });
+      };
+
+      ReactDOM.createRoot(document.getElementById("app")).render(
+        React.createElement(App)
+      );
+    </script>
+  </body>
+</html>
